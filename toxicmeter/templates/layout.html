@@ -1,10 +1,14 @@
+{% load static tailwind_tags %}
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>django</title>
+    <title>ToxicMeter</title>
+    <link rel="stylesheet" href="{% static 'style.css'%}">
+    {% tailwind_css %}
 </head>
 <body>
-    <h2>Hello Toxicity Terminators!</h2>
+    <h2 class='bg-orange-500'>Hello Toxicity Terminators!</h2>
 </body>
 </html>
