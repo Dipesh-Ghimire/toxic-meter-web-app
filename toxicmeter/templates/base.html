@@ -9,6 +9,8 @@
     {% tailwind_css %}
 </head>
 <body>
+    {% include "partials/navbar.html" %}
     <h2 class='bg-orange-500'>Hello Toxicity Terminators!</h2>
+    {% block content %}{% endblock %}
 </body>
 </html>
