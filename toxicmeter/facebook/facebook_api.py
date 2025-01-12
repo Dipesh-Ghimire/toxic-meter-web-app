@@ -1,5 +1,5 @@
 import requests
-from .models import FacebookPost
+from .models import FacebookPost, FacebookComment
 from datetime import datetime
 
 def fetch_facebook_posts(page_id, access_token):
@@ -35,3 +35,46 @@ def fetch_facebook_posts(page_id, access_token):
     else:
         print(f"Failed to fetch posts: {response.status_code} - {response.text}")
         return False
+
+def fetch_facebook_comments(post_id, access_token):
+    import requests
+    from .models import FacebookPost, FacebookComment
+    from django.utils.dateparse import parse_datetime
+
+    # API call to fetch comments for the given post
+    url = f"https://graph.facebook.com/v12.0/{post_id}/comments"
+    params = {
+        'access_token': access_token,
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    # Error handling for API response
+    if 'error' in data:
+        print(f"Error fetching comments: {data['error']['message']}")
+        return False
+
+    # Iterate over and save comments
+    for comment in data.get('data', []):
+        comment_id = str(comment['id'])  # Ensure it's treated as a string
+        content = comment.get('message', '')
+        user_name = comment.get('from', {}).get('name', 'Unknown')
+        created_at = parse_datetime(comment['created_time'])
+
+        # Ensure post ID is treated as a string
+        try:
+            post = FacebookPost.objects.get(post_id=str(post_id))
+            # Ensure no duplicate comments are saved
+            FacebookComment.objects.get_or_create(
+                comment_id=comment_id,
+                defaults={
+                    'post': post,
+                    'user_name': user_name,
+                    'content': content,
+                    'created_at': created_at,
+                },
+            )
+        except FacebookPost.DoesNotExist:
+            print(f"Post with ID {post_id} does not exist in the database.")
+
+    return True

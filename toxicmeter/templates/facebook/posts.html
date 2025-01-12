@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Posts</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h2>Facebook Posts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Post ID</th>
+                <th>Message</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+                <tr>
+                    <td>{{ post.post_id }}</td>
+                    <td>{{ post.message|default:"No message" }}</td>
+                    <td>{{ post.created_at|date:"Y-m-d H:i:s" }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'fetch_comments' post.post_id %}">
+                            {% csrf_token %}
+                            <button type="submit">Fetch Comments</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+</body>
+<!-- Display Django messages dynamically -->
+<script>
+    function showMessage(type, message) {
+      alert(`${type.toUpperCase()}: ${message}`);
+    }
+      {% if messages %}
+      {% with messages|slice:":1" as recent_messages %} <!-- Get only the first message -->
+          {% for message in recent_messages %}
+              showMessage("{{ message.tags }}", "{{ message }}");
+          {% endfor %}
+      {% endwith %}
+  {% endif %}
+  </script>
+</html>

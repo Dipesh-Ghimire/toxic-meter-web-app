@@ -11,13 +11,13 @@ class FacebookPost(models.Model):
         return f"Post ID: {self.post_id} - {self.message[:30]}"
 
 # Model to store Facebook comments
-# class FacebookComment(models.Model):
-#     post = models.ForeignKey(FacebookPost, on_delete=models.CASCADE, related_name='comments')
-#     comment_id = models.CharField(max_length=255, unique=True)  # Comment ID
-#     user_name = models.CharField(max_length=255)  # Name of the commenter
-#     content = models.TextField()  # The comment text
-#     created_at = models.DateTimeField()  # Original creation time
-#     fetched_at = models.DateTimeField(auto_now_add=True)  # When fetched
+class FacebookComment(models.Model):
+    post = models.ForeignKey(FacebookPost, on_delete=models.CASCADE, related_name='comments')
+    comment_id = models.CharField(max_length=255, unique=True)  # Comment ID
+    user_name = models.CharField(max_length=255)  # Name of the commenter
+    content = models.TextField()  # The comment text
+    created_at = models.DateTimeField()  # Original creation time
+    fetched_at = models.DateTimeField(auto_now_add=True)  # When fetched
 
-#     def __str__(self):
-#         return f"Comment by {self.user_name} on Post {self.post.post_id}"
+    def __str__(self):
+        return f"Comment by {self.user_name} on Post {self.post.post_id}"
