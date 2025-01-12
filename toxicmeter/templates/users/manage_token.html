@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Facebook Access Token</title>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid black;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Manage Facebook Access Token</h2>
+
+    <!-- Form for updating token and page ID -->
+    <form method="POST">
+      {% csrf_token %} {{ token_form.as_p }}
+      <button type="submit" name="update_token">Save Token and Page ID</button>
+    </form>
+
+    <h3>Assign Token to a Moderator</h3>
+    <form method="POST">
+        {% csrf_token %}
+        {{ assign_form.as_p }}
+        <button type="submit" name="assign_token">Assign Token</button>
+    </form>
+
+    <hr />
+
+    <!-- Display current token information -->
+    <h3>Your Facebook Token Information</h3>
+    {% if admin_profile.facebook_access_token and admin_profile.facebook_page_id%}
+    <p>
+      <strong>Access Token:</strong> {{ admin_profile.facebook_access_token|slice:":50" }}...
+    </p>
+    <p><strong>Page ID:</strong> {{ admin_profile.facebook_page_id }}</p>
+    <p><strong>Token Active:</strong> {{ admin_profile.token_active }}</p>
+    {% else %}
+    <p>
+      You have not configured your Access Token or Page ID yet. Please use the
+      form above to set them up.
+    </p>
+    {% endif %}
+
+    <hr />
+
+    <!-- Display assigned moderators -->
+    <h3>Moderators Using Your Token</h3>
+    {% if assigned_moderators %}
+    <table>
+      <thead>
+        <tr>
+          <th>Moderator Name</th>
+          <th>Assigned Date</th>
+          <th>Token Active</th>
+          <th>Remove Moderators</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for moderator in assigned_moderators %}
+        <tr>
+          <td>{{ moderator.user.username }}</td>
+          <td>{{ moderator.user.date_joined|date:"d M Y" }}</td>
+          <td>{{ moderator.token_active }}</td>
+          <td>
+            <form method="POST" action="{% url 'remove_moderator' moderator.user.id %}">
+                {% csrf_token %}
+                <button type="submit" onclick="return confirm('Are you sure you want to remove this moderator?')">Remove</button>
+            </form>
+        </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No moderators assigned to your token.</p>
+    {% endif %}
+
+    <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+  </body>
+</html>

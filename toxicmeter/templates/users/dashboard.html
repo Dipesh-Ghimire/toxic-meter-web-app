@@ -1,3 +1,32 @@
 <h2>Welcome, {{ user.username }}!</h2>
-<p>You are logged in as {{ user.userprofile.role }}.</p>
+{% if user.userprofile %}
+  <p>You are logged in as {{ user.userprofile.role }}.</p>
+{% else %}
+  <script>
+    window.location.href = "{% url 'login' %}";
+  </script>
+{% endif %}
+
 <a href="{% url 'logout' %}">Logout</a>
+
+{% if user.userprofile.role == 'moderator' %}
+    <h3>Fetch Facebook Posts</h3>
+    <form method="POST" action="{% url 'fetch_posts' %}">
+        {% csrf_token %}
+        <button type="submit">Fetch Posts</button>
+    </form>
+{% endif %}
+
+<!-- Display Django messages dynamically -->
+<script>
+  function showMessage(type, message) {
+    alert(`${type.toUpperCase()}: ${message}`);
+  }
+    {% if messages %}
+    {% with messages|slice:":1" as recent_messages %} <!-- Get only the first message -->
+        {% for message in recent_messages %}
+            showMessage("{{ message.tags }}", "{{ message }}");
+        {% endfor %}
+    {% endwith %}
+{% endif %}
+</script>

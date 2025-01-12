@@ -30,3 +30,30 @@ class UserRegisterForm(UserCreationForm):
 class UserLoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
+
+# Form for Admin to update their token
+class AdminTokenForm(forms.ModelForm):
+    facebook_access_token = forms.CharField(required=True, widget=forms.TextInput(attrs={
+        'placeholder': 'Enter your Facebook Access Token'
+    }))
+    facebook_page_id = forms.CharField(required=True, widget=forms.TextInput(attrs={
+        'placeholder': 'Enter your Facebook Page ID'
+    }))
+    class Meta:
+        model = UserProfile
+        fields = ['facebook_access_token','facebook_page_id', 'token_active']
+
+# Form for Admin to assign a token to Moderators
+class AssignTokenForm(forms.Form):
+    moderator = forms.ModelChoiceField(
+        queryset=User.objects.filter(userprofile__role='moderator'),
+        label="Assign Token To Moderator"
+    )
+    def __init__(self, *args, **kwargs):
+        admin_user = kwargs.pop('admin_user', None)
+        super().__init__(*args, **kwargs)
+
+        if admin_user:
+            admin_profile = admin_user.userprofile
+            if not admin_profile.facebook_access_token or not admin_profile.facebook_page_id:
+                raise forms.ValidationError("You must configure both a valid Access Token and Page ID before assigning.")
