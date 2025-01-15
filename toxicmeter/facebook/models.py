@@ -18,6 +18,6 @@ class FacebookComment(models.Model):
     content = models.TextField()  # The comment text
     created_at = models.DateTimeField()  # Original creation time
     fetched_at = models.DateTimeField(auto_now_add=True)  # When fetched
-
+    is_hidden = models.BooleanField(default=False)  # Whether the comment is hidden by the user
     def __str__(self):
         return f"Comment by {self.user_name} on Post {self.post.post_id}"

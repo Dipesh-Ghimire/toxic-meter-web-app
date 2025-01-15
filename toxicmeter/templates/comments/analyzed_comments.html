@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Analyzed Comments</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Post ID</th>
+            <th>Comment</th>
+            <th>User</th>
+            <th>Toxicity Parameters</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for comment in comments %}
+        <tr>
+            <td>{{ comment.post.post_id }}</td>
+            <td>{{ comment.content }}</td>
+            <td>{{ comment.user_name }}</td>
+            <td>
+                <ul>
+                    {% if comment.toxicity_parameters.toxic %}<li>Toxic</li>{% endif %}
+                    {% if comment.toxicity_parameters.severe_toxic %}<li>Severe Toxic</li>{% endif %}
+                    {% if comment.toxicity_parameters.obscene %}<li>Obscene</li>{% endif %}
+                    {% if comment.toxicity_parameters.threat %}<li>Threat</li>{% endif %}
+                    {% if comment.toxicity_parameters.insult %}<li>Insult</li>{% endif %}
+                    {% if comment.toxicity_parameters.identity_hate %}<li>Identity Hate</li>{% endif %}
+                </ul>
+            </td>
+            <td>
+                <!-- Delete Button -->
+                <form method="POST" action="{% url 'delete_comment' comment.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete from Facebook</button>
+                </form>
+                {% if comment.is_hidden %}
+                <form method="POST" action="{% url 'unhide_comment' comment.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning btn-sm">Unhide Comment</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{% url 'hide_comment' comment.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning btn-sm">Hide Comment</button>
+                </form>
+                {% endif %}
+
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

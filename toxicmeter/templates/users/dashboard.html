@@ -8,6 +8,10 @@
 {% endif %}
 
 <a href="{% url 'logout' %}">Logout</a>
+<nav>
+    <a href="{% url 'analyzed_comments' %}">Analyzed Comments</a>
+    <a href="{% url 'unanalyzed_comments' %}">Unanalyzed Comments</a>
+</nav>
 
 {% if user.userprofile.role == 'moderator' %}
     <h3>Fetch Facebook Posts</h3>
@@ -15,6 +19,50 @@
         {% csrf_token %}
         <button type="submit">Fetch Posts</button>
     </form>
+
+    <h2>Moderator Tools: Manage Comments</h2>
+    <form method="post" action="{% url 'predict_bulk' %}">
+        {% csrf_token %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all" /></th>
+                    <th>Comment ID</th>
+                    <th>Content</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comment in comments %}
+                <tr>
+                    <td><input type="checkbox" name="comment_ids" value="{{ comment.id }}" /></td>
+                    <td>{{ comment.id }}</td>
+                    <td>{{ comment.content }}</td>
+                    <td>
+                        {% if comment.toxicityparameters_set.exists %}
+                        Predicted
+                        {% else %}
+                        Pending
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'predict_single' comment.id %}" class="btn btn-primary btn-sm">Predict</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-success">Bulk Predict</button>
+    </form>
+
+    <script>
+        // Select All Checkbox Logic
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('input[name="comment_ids"]');
+            checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+        });
+    </script>
 {% endif %}
 
 <!-- Display Django messages dynamically -->

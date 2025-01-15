@@ -42,7 +42,7 @@ def fetch_facebook_comments(post_id, access_token):
     from django.utils.dateparse import parse_datetime
 
     # API call to fetch comments for the given post
-    url = f"https://graph.facebook.com/v12.0/{post_id}/comments"
+    url = f"https://graph.facebook.com/v21.0/{post_id}/comments"
     params = {
         'access_token': access_token,
     }
@@ -78,3 +78,87 @@ def fetch_facebook_comments(post_id, access_token):
             print(f"Post with ID {post_id} does not exist in the database.")
 
     return True
+
+def delete_facebook_comment(comment_id, access_token):
+    """
+    Deletes a comment both from Facebook and the local database.
+
+    Args:
+        comment_id (str): The DB comment ID.
+        access_token (str): The access token for making Facebook API requests.
+
+    Returns:
+        bool: True if the comment was successfully deleted, False otherwise.
+    """
+    import requests
+    from facebook.models import FacebookComment
+
+    # Delete the comment from Facebook
+    fb_cmt_id = FacebookComment.objects.get(id=comment_id).comment_id
+    url = f"https://graph.facebook.com/v21.0/{fb_cmt_id}"
+    params = {
+        'access_token': access_token,
+    }
+    response = requests.delete(url, params=params)
+    
+    if response.status_code == 200:
+        # Successfully deleted from Facebook, now delete from the database
+        try:
+            FacebookComment.objects.get(id=comment_id).delete()
+            return True
+        except FacebookComment.DoesNotExist:
+            print(f"Comment with ID {comment_id} does not exist in the database.")
+            return False
+    else:
+        print(f"Error deleting comment from Facebook: {response.json().get('error', {}).get('message', 'Unknown error')}")
+        return False
+
+def hide_facebook_comment(comment_id, access_token):
+    fb_cmt_id = FacebookComment.objects.get(id=comment_id).comment_id
+    url = f"https://graph.facebook.com/v21.0/{fb_cmt_id}"
+    params = {
+        'is_hidden': 'true',
+        'access_token': access_token,
+    }
+    try:
+        response = requests.post(url, data=params)
+        response_data = response.json()
+        if response.status_code == 200 and response_data.get('success'):
+            FacebookComment.objects.filter(id=comment_id).update(is_hidden=True)
+            return True
+        else:
+            print(f"Error hiding comment: {response_data}")
+            return False
+    except requests.RequestException as e:
+        print(f"Error while hiding comment: {e}")
+        return False
+    
+def unhide_facebook_comment(comment_id, access_token):
+    """
+    Unhides a specific comment on Facebook.
+
+    Args:
+        comment_id (str): The ID of the comment according to database to unhide.
+        access_token (str): The access token of the moderator.
+
+    Returns:
+        bool: True if the comment was successfully unhidden, False otherwise.
+    """
+    fb_cmt_id = FacebookComment.objects.get(id=comment_id).comment_id
+    url = f"https://graph.facebook.com/v21.0/{fb_cmt_id}"
+    params = {
+        'is_hidden': 'false',
+        'access_token': access_token,
+    }
+    try:
+        response = requests.post(url, data=params)
+        response_data = response.json()
+        if response.status_code == 200 and response_data.get('success'):
+            FacebookComment.objects.filter(id=comment_id).update(is_hidden=False)
+            return True
+        else:
+            print(f"Error unhiding comment: {response_data}")
+            return False
+    except requests.RequestException as e:
+        print(f"Error while unhiding comment: {e}")
+        return False

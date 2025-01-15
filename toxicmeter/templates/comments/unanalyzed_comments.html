@@ -1,0 +1,34 @@
+<h1>Unanalyzed Comments</h1>
+
+<!-- Bulk Analyze Button -->
+<form method="POST" action="{% url 'analyze_bulk_comments' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary btn-sm">Analyze All Comments</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Post ID</th>
+            <th>Comment</th>
+            <th>User</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for comment in comments %}
+        <tr>
+            <td>{{ comment.post.post_id }}</td>
+            <td>{{ comment.content }}</td>
+            <td>{{ comment.user_name }}</td>
+            <td>
+                <!-- Analyze Single Comment -->
+                <form method="POST" action="{% url 'analyze_comment' comment.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">Analyze</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
