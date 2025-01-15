@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 # Create your models here.
 class DeletedComment(models.Model):
     comment_id = models.CharField(max_length=255, unique=True)  # Store comment_id directly
@@ -16,3 +16,23 @@ class DeletedComment(models.Model):
 
     def __str__(self):
         return f"Deleted Comment ID: {self.comment_id} - Toxicity: {self.toxic}"
+
+class CommentStats(models.Model):
+    moderator = models.OneToOneField(User, on_delete=models.CASCADE, related_name="moderator_stats")
+
+    # Comments-related counters
+    comments_analyzed = models.PositiveIntegerField(default=0)  # Total comments analyzed
+    comments_fetched = models.PositiveIntegerField(default=0)   # Total comments fetched from Facebook
+    comments_deleted = models.PositiveIntegerField(default=0)   # Total comments deleted
+    comments_hidden = models.PositiveIntegerField(default=0)    # Total comments hidden
+    comments_unhidden = models.PositiveIntegerField(default=0)  # Total comments unhidden
+    comments_manually_tagged = models.PositiveIntegerField(default=0)  # Total comments manually tagged
+
+    # Posts-related counters
+    posts_fetched = models.PositiveIntegerField(default=0)      # Total posts fetched from Facebook
+
+    # Time tracking
+    last_updated = models.DateTimeField(auto_now=True)  # Automatically track the last update
+
+    def __str__(self):
+        return f"Moderator Stats for {self.moderator.username}"

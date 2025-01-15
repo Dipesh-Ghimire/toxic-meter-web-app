@@ -2,10 +2,12 @@ from django.shortcuts import get_object_or_404, render
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 from .models import UserProfile
 from .forms import AssignTokenForm, UserRegisterForm, UserLoginForm, AdminTokenForm
 from django.contrib import messages
+from comments.models import CommentStats
 
 # Registration View
 def register(request):
@@ -46,7 +48,41 @@ def user_logout(request):
 # Dashboard View (accessible after login)
 @login_required
 def dashboard(request):
-    return render(request, 'users/dashboard.html', {'user': request.user})
+    # Check if the logged-in user is an admin
+    if request.user.is_superuser:  # Admins can see stats for all moderators
+        moderators = User.objects.filter(userprofile__role='moderator')  # Get all moderators
+        stats_data = []
+        for moderator in moderators:
+            try:
+                stats = moderator.moderator_stats  # Fetch the stats for each moderator
+                stats_data.append({
+                    'moderator': moderator,
+                    'stats': stats
+                })
+            except CommentStats.DoesNotExist:
+                continue  # Skip if no stats exist for a moderator
+        context = {
+            'is_admin': True,
+            'stats_data': stats_data,
+            'user': request.user,
+        }
+    else:  # If the user is a moderator, show only their own stats
+        try:
+            stats = request.user.moderator_stats  # Fetch the current moderator's stats
+            context = {
+                'is_admin': False,
+                'stats': stats,
+                'user': request.user,
+            }
+        except CommentStats.DoesNotExist:
+            context = {
+                'is_admin': False,
+                'stats': None,
+                'user': request.user,
+            }
+    
+    return render(request, 'users/dashboard.html', context)
+
 
 # Admin: Add or Update Facebook Access Token and Page ID and assign to Moderators
 @login_required

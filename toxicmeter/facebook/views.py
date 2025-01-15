@@ -56,7 +56,7 @@ def fetch_comments(request, post_id):
         return redirect('view_posts')
 
     # Fetch comments for the given post using the token
-    success = fetch_facebook_comments(post_id, access_token)
+    success = fetch_facebook_comments(post_id, access_token,request)
     if success:
         messages.success(request, f"Comments for post {post_id} have been fetched successfully!")
     else:

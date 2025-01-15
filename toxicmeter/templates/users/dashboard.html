@@ -13,68 +13,86 @@
     <a href="{% url 'unanalyzed_comments' %}">Unanalyzed Comments</a>
 </nav>
 
-{% if user.userprofile.role == 'moderator' %}
-    <h3>Fetch Facebook Posts</h3>
-    <form method="POST" action="{% url 'fetch_posts' %}">
-        {% csrf_token %}
-        <button type="submit">Fetch Posts</button>
-    </form>
-
-    <h2>Moderator Tools: Manage Comments</h2>
-    <form method="post" action="{% url 'predict_bulk' %}">
-        {% csrf_token %}
-        <table class="table table-striped">
+{% if is_admin %}
+        <h3>Admin View - Moderators' Stats</h3>
+        <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th><input type="checkbox" id="select-all" /></th>
-                    <th>Comment ID</th>
-                    <th>Content</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>Moderator</th>
+                    <th>Comments Fetched</th>
+                    <th>Comments Analyzed</th>
+                    <th>Comments Deleted</th>
+                    <th>Comments Hidden</th>
+                    <th>Comments Unhidden</th>
+                    <th>Comments Manually Tagged</th>
+                    <th>Posts Fetched</th>
+                    <th>Last Updated</th>
                 </tr>
             </thead>
             <tbody>
-                {% for comment in comments %}
-                <tr>
-                    <td><input type="checkbox" name="comment_ids" value="{{ comment.id }}" /></td>
-                    <td>{{ comment.id }}</td>
-                    <td>{{ comment.content }}</td>
-                    <td>
-                        {% if comment.toxicityparameters_set.exists %}
-                        Predicted
-                        {% else %}
-                        Pending
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{% url 'predict_single' comment.id %}" class="btn btn-primary btn-sm">Predict</a>
-                    </td>
-                </tr>
+                {% for data in stats_data %}
+                    <tr>
+                        <td>{{ data.moderator.username }}</td>
+                        <td>{{ data.stats.comments_fetched }}</td>
+                        <td>{{ data.stats.comments_analyzed }}</td>
+                        <td>{{ data.stats.comments_deleted }}</td>
+                        <td>{{ data.stats.comments_hidden }}</td>
+                        <td>{{ data.stats.comments_unhidden }}</td>
+                        <td>{{ data.stats.comments_manually_tagged }}</td>
+                        <td>{{ data.stats.posts_fetched }}</td>
+                        <td>{{ data.stats.last_updated }}</td>
+                    </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <button type="submit" class="btn btn-success">Bulk Predict</button>
-    </form>
 
-    <script>
-        // Select All Checkbox Logic
-        document.getElementById('select-all').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('input[name="comment_ids"]');
-            checkboxes.forEach(checkbox => checkbox.checked = this.checked);
-        });
-    </script>
-{% endif %}
+    {% else %}
+        <h3>Your Stats</h3>
+        {% if stats %}
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Counter</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Comments Fetched</td>
+                        <td>{{ stats.comments_fetched }}</td>
+                    </tr>
+                    <tr>
+                        <td>Comments Analyzed</td>
+                        <td>{{ stats.comments_analyzed }}</td>
+                    </tr>
+                    <tr>
+                        <td>Comments Deleted</td>
+                        <td>{{ stats.comments_deleted }}</td>
+                    </tr>
+                    <tr>
+                        <td>Comments Hidden</td>
+                        <td>{{ stats.comments_hidden }}</td>
+                    </tr>
+                    <tr>
+                        <td>Comments Unhidden</td>
+                        <td>{{ stats.comments_unhidden }}</td>
+                    </tr>
+                    <tr>
+                        <td>Comments Manually Tagged</td>
+                        <td>{{ stats.comments_manually_tagged }}</td>
+                    </tr>
+                    <tr>
+                        <td>Posts Fetched</td>
+                        <td>{{ stats.posts_fetched }}</td>
+                    </tr>
+                    <tr>
+                        <td>Last Updated</td>
+                        <td>{{ stats.last_updated }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        {% else %}
+            <p>No statistics available for you yet.</p>
+        {% endif %}
+    {% endif %}
 
-<!-- Display Django messages dynamically -->
-<script>
-  function showMessage(type, message) {
-    alert(`${type.toUpperCase()}: ${message}`);
-  }
-    {% if messages %}
-    {% with messages|slice:":1" as recent_messages %} <!-- Get only the first message -->
-        {% for message in recent_messages %}
-            showMessage("{{ message.tags }}", "{{ message }}");
-        {% endfor %}
-    {% endwith %}
-{% endif %}
-</script>

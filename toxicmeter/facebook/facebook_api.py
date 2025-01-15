@@ -1,6 +1,8 @@
 import requests
+from comments.models import CommentStats
 from .models import FacebookPost, FacebookComment
 from datetime import datetime
+from django.utils.dateparse import parse_datetime
 
 def fetch_facebook_posts(page_id, access_token):
     """
@@ -36,11 +38,7 @@ def fetch_facebook_posts(page_id, access_token):
         print(f"Failed to fetch posts: {response.status_code} - {response.text}")
         return False
 
-def fetch_facebook_comments(post_id, access_token):
-    import requests
-    from .models import FacebookPost, FacebookComment
-    from django.utils.dateparse import parse_datetime
-
+def fetch_facebook_comments(post_id, access_token, request):
     # API call to fetch comments for the given post
     url = f"https://graph.facebook.com/v21.0/{post_id}/comments"
     params = {
@@ -48,7 +46,13 @@ def fetch_facebook_comments(post_id, access_token):
     }
     response = requests.get(url, params=params)
     data = response.json()
-
+    moderator = request.user
+    try:
+        stats = moderator.moderator_stats  # Assuming moderator_stats exists for the moderator
+        stats.comments_fetched += len(data.get('data', []))
+        stats.save()
+    except CommentStats.DoesNotExist:
+        CommentStats.objects.create(moderator=moderator, comments_fetched=len(data.get('data', [])))
     # Error handling for API response
     if 'error' in data:
         print(f"Error fetching comments: {data['error']['message']}")
