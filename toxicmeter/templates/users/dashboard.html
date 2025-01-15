@@ -47,6 +47,10 @@
         </table>
 
     {% else %}
+        <form method="POST" action="{% url 'fetch_posts' %}">
+            {% csrf_token %}
+            <button type="submit">Fetch Posts</button>
+        </form>
         <h3>Your Stats</h3>
         {% if stats %}
             <table class="table table-bordered">

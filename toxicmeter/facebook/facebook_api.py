@@ -4,7 +4,7 @@ from .models import FacebookPost, FacebookComment
 from datetime import datetime
 from django.utils.dateparse import parse_datetime
 
-def fetch_facebook_posts(page_id, access_token):
+def fetch_facebook_posts(page_id, access_token, request):
     """
     Fetch posts from a Facebook Page using Graph API.
     Fetches only new posts that are not already in the database.
@@ -24,15 +24,22 @@ def fetch_facebook_posts(page_id, access_token):
 
         # Get all post IDs currently in the database for this page
         existing_post_ids = set(FacebookPost.objects.values_list('post_id', flat=True))
-
+        counter = 0
         # Iterate through the posts returned by the API
         for post in data.get('data', []):
             if post['id'] not in existing_post_ids:  # Check if post is already in the database
+                counter += 1
                 FacebookPost.objects.create(
                     post_id=post['id'],
                     message=post.get('message', ''),
                     created_at=datetime.strptime(post['created_time'], "%Y-%m-%dT%H:%M:%S%z"),
                 )
+        try:
+            stats = request.user.moderator_stats  # Assuming moderator_stats exists for the moderator
+            stats.posts_fetched += counter
+            stats.save()
+        except CommentStats.DoesNotExist:
+            CommentStats.objects.create(moderator=request.user, posts_fetched=counter)
         return True
     else:
         print(f"Failed to fetch posts: {response.status_code} - {response.text}")
@@ -47,17 +54,11 @@ def fetch_facebook_comments(post_id, access_token, request):
     response = requests.get(url, params=params)
     data = response.json()
     moderator = request.user
-    try:
-        stats = moderator.moderator_stats  # Assuming moderator_stats exists for the moderator
-        stats.comments_fetched += len(data.get('data', []))
-        stats.save()
-    except CommentStats.DoesNotExist:
-        CommentStats.objects.create(moderator=moderator, comments_fetched=len(data.get('data', [])))
     # Error handling for API response
     if 'error' in data:
         print(f"Error fetching comments: {data['error']['message']}")
         return False
-
+    new_comments_count = 0
     # Iterate over and save comments
     for comment in data.get('data', []):
         comment_id = str(comment['id'])  # Ensure it's treated as a string
@@ -69,7 +70,7 @@ def fetch_facebook_comments(post_id, access_token, request):
         try:
             post = FacebookPost.objects.get(post_id=str(post_id))
             # Ensure no duplicate comments are saved
-            FacebookComment.objects.get_or_create(
+            comment_obj, created = FacebookComment.objects.get_or_create(
                 comment_id=comment_id,
                 defaults={
                     'post': post,
@@ -78,9 +79,16 @@ def fetch_facebook_comments(post_id, access_token, request):
                     'created_at': created_at,
                 },
             )
+            if created:
+                new_comments_count += 1
         except FacebookPost.DoesNotExist:
             print(f"Post with ID {post_id} does not exist in the database.")
-
+    try:
+        stats = moderator.moderator_stats  # Assuming moderator_stats exists for the moderator
+        stats.comments_fetched += new_comments_count
+        stats.save()
+    except CommentStats.DoesNotExist:
+        CommentStats.objects.create(moderator=moderator, comments_fetched=new_comments_count)
     return True
 
 def delete_facebook_comment(comment_id, access_token):
@@ -118,10 +126,14 @@ def delete_facebook_comment(comment_id, access_token):
         return False
 
 def hide_facebook_comment(comment_id, access_token):
-    fb_cmt_id = FacebookComment.objects.get(id=comment_id).comment_id
+    try:
+        fb_cmt_id = FacebookComment.objects.get(id=comment_id).comment_id
+    except FacebookComment.DoesNotExist:
+        print(f"FacebookComment with ID {comment_id} does not exist.")
+        return False
     url = f"https://graph.facebook.com/v21.0/{fb_cmt_id}"
     params = {
-        'is_hidden': 'true',
+        'is_hidden': 'TRUE',
         'access_token': access_token,
     }
     try:
@@ -151,7 +163,7 @@ def unhide_facebook_comment(comment_id, access_token):
     fb_cmt_id = FacebookComment.objects.get(id=comment_id).comment_id
     url = f"https://graph.facebook.com/v21.0/{fb_cmt_id}"
     params = {
-        'is_hidden': 'false',
+        'is_hidden': 'FALSE',
         'access_token': access_token,
     }
     try:

@@ -20,7 +20,7 @@ def fetch_posts(request):
         return redirect('dashboard')
 
     # Fetch posts using the assigned token and page ID
-    success = fetch_facebook_posts(page_id, access_token)
+    success = fetch_facebook_posts(page_id, access_token, request)
     if success:
         messages.success(request, "Posts fetched and stored successfully!")
     else:

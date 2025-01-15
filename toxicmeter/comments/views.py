@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from facebook.models import FacebookComment
 from ml_integration.models import ToxicityParameters
-from .models import DeletedComment
+from .models import CommentStats, DeletedComment
 from ml_integration.services import store_bulk_predictions, store_single_prediction
 from facebook.facebook_api import delete_facebook_comment, hide_facebook_comment , unhide_facebook_comment
 from django.contrib.auth.decorators import login_required
@@ -33,7 +33,14 @@ def analyze_comment(request, comment_id):
     View to analyze a single comment and store toxicity predictions in the database.
     """
     success = store_single_prediction(comment_id)
+    comment = FacebookComment.objects.get(id=comment_id)
     if success:
+        try:
+            stats = request.user.moderator_stats  # Assuming a relationship exists for the moderator
+            stats.comments_analyzed += 1  # or len(comment_ids) for bulk actions
+            stats.save()
+        except CommentStats.DoesNotExist:
+            CommentStats.objects.create(moderator=comment.post.moderator, comments_analyzed=1)
         # Redirect back to unanalyzed comments page after analysis
         return redirect('unanalyzed_comments')
     else:
@@ -47,10 +54,16 @@ def analyze_bulk_comments(request):
     """
     # Fetch IDs of unanalyzed comments
     comment_ids = FacebookComment.objects.filter(toxicity_parameters__isnull=True).values_list('id', flat=True)
-
+    comment_count = len(list(comment_ids))
     # Perform bulk prediction and store results
     success = store_bulk_predictions(comment_ids)
     if success:
+        try:
+            stats = request.user.moderator_stats
+            stats.comments_analyzed += comment_count
+            stats.save()
+        except CommentStats.DoesNotExist:
+            CommentStats.objects.create(moderator=request.user, comments_analyzed=1)
         # Redirect back to unanalyzed comments page after analysis
         return redirect('unanalyzed_comments')
     else:
@@ -115,6 +128,12 @@ def delete_comment(request, comment_id):
     if success:
         try:
             comment.delete()
+            try:
+                stats = request.user.moderator_stats
+                stats.comments_deleted += 1
+                stats.save()
+            except CommentStats.DoesNotExist:
+                CommentStats.objects.create(moderator=request.user, comments_deleted=1)
             messages.success(request, f"Comment with ID {comment_id} has been deleted from Facebook and the local database!")
         except FacebookComment.DoesNotExist:
             messages.warning(request, f"Comment with ID {comment_id} was deleted from Facebook but not found in the local database.")
@@ -185,6 +204,12 @@ def unhide_comment(request, comment_id):
     success = unhide_facebook_comment(comment_id, access_token)
 
     if success:
+        try:
+            stats = request.user.moderator_stats
+            stats.comments_unhidden += 1
+            stats.save()
+        except CommentStats.DoesNotExist:
+            CommentStats.objects.create(moderator=request.user, comments_unhidden=1)
         messages.success(request, f"Comment with ID {comment_id} has been successfully unhidden on Facebook!")
     else:
         messages.error(request, f"Failed to unhide comment with ID {comment_id} on Facebook.")

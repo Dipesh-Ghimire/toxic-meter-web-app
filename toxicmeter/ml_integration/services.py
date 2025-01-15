@@ -57,18 +57,22 @@ def store_single_prediction(comment_id):
         # Get the prediction using Step 1's function
         prediction = predict_single_comment(comment.content)
 
-        # Store the prediction in ToxicityParameters
-        ToxicityParameters.objects.update_or_create(
-            comment=comment,
-            defaults={
-                'toxic': prediction['toxic'],
-                'severe_toxic': prediction['severe_toxic'],
-                'obscene': prediction['obscene'],
-                'threat': prediction['threat'],
-                'insult': prediction['insult'],
-                'identity_hate': prediction['identity_hate'],
-            },
-        )
+        if prediction:
+            # Store the prediction in ToxicityParameters
+            ToxicityParameters.objects.update_or_create(
+                comment=comment,
+                defaults={
+                    'toxic': prediction['toxic'],
+                    'severe_toxic': prediction['severe_toxic'],
+                    'obscene': prediction['obscene'],
+                    'threat': prediction['threat'],
+                    'insult': prediction['insult'],
+                    'identity_hate': prediction['identity_hate'],
+                },
+            )
+        else:
+            print(f"Prediction failed for comment ID: {comment_id}")
+            return False
         return True
     except FacebookComment.DoesNotExist:
         return False
