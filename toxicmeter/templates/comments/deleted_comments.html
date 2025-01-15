@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Deleted Comments Dashboard</h1>
+
+
+<!-- Button to download CSV -->
+<a href="{% url 'deleted_comments' %}?download_csv=true" class="btn btn-primary mb-3">
+    Download CSV of Deleted Comments
+</a>
+
+<!-- Table to display deleted comments -->
+<table class="table">
+    <thead>
+        <tr>
+            <th>Comment ID</th>
+            <th>Content</th>
+            <th>User</th>
+            <th>Toxicity Parameters</th>
+            <th>Reason for Deletion</th>
+            <th>Deleted At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for comment in deleted_comments %}
+            <tr>
+                <td>{{ comment.comment_id }}</td>
+                <td>{{ comment.content }}</td>
+                <td>{{ comment.user_name }}</td>
+                <td>
+                    <ul>
+                        {% if comment.toxic %}
+                            <li>Toxic</li>
+                        {% endif %}
+                        {% if comment.severe_toxic %}
+                            <li>Severe Toxic</li>
+                        {% endif %}
+                        {% if comment.obscene %}
+                            <li>Obscene</li>
+                        {% endif %}
+                        {% if comment.threat %}
+                            <li>Threat</li>
+                        {% endif %}
+                        {% if comment.insult %}
+                            <li>Insult</li>
+                        {% endif %}
+                        {% if comment.identity_hate %}
+                            <li>Identity Hate</li>
+                        {% endif %}
+                    </ul>
+                </td>
+                <td>{{ comment.reason_for_deletion }}</td>
+                <td>{{ comment.deleted_at }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

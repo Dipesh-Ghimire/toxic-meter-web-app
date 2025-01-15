@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('analyzed/', views.analyzed_comments, name='analyzed_comments'),
     path('unanalyzed/', views.unanalyzed_comments, name='unanalyzed_comments'),
+    path('deleted/', views.deleted_comments, name='deleted_comments'),
     #path('update_comment_tags/<int:comment_id>/', views.update_comment_tags, name='update_comment_tags'),
     path('analyze/<int:comment_id>/', views.analyze_comment, name='analyze_comment'),
     path('delete/<int:comment_id>/', views.delete_comment, name='delete_comment'),
