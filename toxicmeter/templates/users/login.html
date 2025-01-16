@@ -1,10 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Login</h2>
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-</form>
-<p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="max-w-sm w-full bg-gray-900 p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold text-center mb-6 dark:text-white">Login</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-5">
+                <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter username</label>
+                <input type="text" name="username" id="username" value="" 
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white-white dark:focus:ring-blue-500 dark:focus:border-blue-500" 
+                    placeholder="Enter your username" required />
+            </div>
+
+            <div class="mb-5">
+                <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter password</label>
+                <input type="password" name="password" id="password" value="" 
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white-white dark:focus:ring-blue-500 dark:focus:border-blue-500" 
+                    placeholder="Enter your password" required />
+            </div>
+
+            <div class="flex items-start mb-5">
+                <div class="flex items-center h-5">
+                    <input type="checkbox" name="remember_me" id="remember" value="{{ form.remember_me.value }}" 
+                        class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800" />
+                </div>
+                <label for="remember" class="ms-2 text-sm font-medium text-gray-900 dark:text-white">Remember me</label>
+            </div>
+
+            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+        </form>
+
+        <p class="text-center mt-4 dark:text-white">Don't have an account? <a href="{% url 'register' %}" class="text-blue-600 hover:underline">Register</a></p>
+    </div>
+</div>
 {% endblock %}
+

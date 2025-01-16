@@ -1,5 +1,150 @@
 {% extends "base.html" %}
 {% block content %}
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="max-w-2xl w-full bg-gray-900 p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold text-center mb-8 text-white">Register</h2>
+
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            
+            <!-- Django will render the form errors -->
+            {{ form.non_field_errors }}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-white">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <p class="text-xs text-red-600 mt-2">{{ field.errors|join:" " }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <p class="text-center mt-6 text-white">Already have an account? <a href="{% url 'login' %}" class="text-blue-400 hover:underline">Login</a></p>
+            </div>
+            <button type="submit" class="mt-6 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                Register
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% comment %} {% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="max-w-sm w-full bg-gray-900 p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold text-center mb-6 dark:text-white">Register</h2>
+
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            
+            <!-- Django will render the form fields here -->
+            {{ form.non_field_errors }}
+            
+            {% for field in form %}
+                <div class="mb-5">
+                    <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <p class="text-xs text-red-600 mt-2">{{ field.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Register</button>
+        </form>
+
+        <p class="text-center mt-4 dark:text-white">Already have an account? <a href="{% url 'login' %}" class="text-blue-600 hover:underline">Login</a></p>
+    </div>
+</div>
+{% endblock %} {% endcomment %}
+
+{% comment %} {% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="max-w-sm w-full bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold text-center mb-6">Register</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Username -->
+            <div class="mb-5">
+                <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text">Username</label>
+                <input type="text" name="username" id="username" 
+                    class="bg-gray-50 border border-gray-300 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text dark:focus:ring-blue-500 dark:focus:border-blue-500" 
+                    placeholder="150 characters or fewer. Letters, digits and @/./+/-/_ only." required />
+            </div>
+
+            <!-- Email -->
+            <div class="mb-5">
+                <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text">Email</label>
+                <input type="email" name="email" id="email" 
+                    class="bg-gray-50 border border-gray-300 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text dark:focus:ring-blue-500 dark:focus:border-blue-500" 
+                    placeholder="name@domain.com" required />
+            </div>
+
+            <!-- First Name -->
+            <div class="mb-5">
+                <label for="first_name" class="block mb-2 text-sm font-medium text-gray-900 dark:text">First name</label>
+                <input type="text" name="first_name" id="first_name"
+                    class="bg-gray-50 border border-gray-300 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text dark:focus:ring-blue-500 dark:focus:border-blue-500" 
+                    required />
+            </div>
+
+            <!-- Last Name -->
+            <div class="mb-5">
+                <label for="last_name" class="block mb-2 text-sm font-medium text-gray-900 dark:text">Last name</label>
+                <input type="text" name="last_name" id="last_name"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text dark:focus:ring-blue-500 dark:focus:border-blue-500" 
+                    required />
+            </div>
+
+            <!-- Password -->
+            <div class="mb-5">
+                <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text">Password</label>
+                <input type="password" name="password" id="password"
+                    class="bg-gray-50 border border-gray-300 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text dark:focus:ring-blue-500 dark:focus:border-blue-500" 
+                    placeholder="Your password must contain at least 8 characters." required />
+                <p class="text-xs text-gray-600 mt-2">Your password cannot be too similar to your other personal information.</p>
+                <p class="text-xs text-gray-600">Your password cannot be a commonly used password.</p>
+                <p class="text-xs text-gray-600">Your password cannot be entirely numeric.</p>
+            </div>
+
+            <!-- Password Confirmation -->
+            <div class="mb-5">
+                <label for="password_confirmation" class="block mb-2 text-sm font-medium text-gray-900 dark:text">Password confirmation</label>
+                <input type="password" name="password_confirmation" id="password_confirmation" 
+                    class="bg-gray-50 border border-gray-300 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text dark:focus:ring-blue-500 dark:focus:border-blue-500" 
+                    placeholder="Enter the same password as before" required />
+            </div>
+
+            <!-- Role Selection (Admin or Moderator) -->
+            <div class="mb-5">
+                <label for="role" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Role</label>
+                <select name="role" id="role" 
+                    class="bg-gray-50 border border-gray-300 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    <option value="admin">Admin</option>
+                    <option value="moderator" selected>Moderator</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Register</button>
+        </form>
+
+        <p class="text-center mt-4">Already have an account? <a href="{% url 'login' %}" class="text-blue-600 hover:underline">Login</a></p>
+    </div>
+</div>
+{% endblock %} {% endcomment %}
+
+{% comment %} {% extends "base.html" %}
+{% block content %}
 <h2>Register</h2>
 <form method="POST">
     {% csrf_token %}
@@ -7,4 +152,4 @@
     <button type="submit">Register</button>
 </form>
 <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
-{% endblock %}
+{% endblock %} {% endcomment %}
