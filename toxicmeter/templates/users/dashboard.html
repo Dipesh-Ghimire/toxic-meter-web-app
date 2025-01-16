@@ -1,17 +1,15 @@
+{% extends 'base.html' %}
+{{ user }}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
 <h2>Welcome, {{ user.username }}!</h2>
-{% if user.userprofile %}
-  <p>You are logged in as {{ user.userprofile.role }}.</p>
-{% else %}
+{% if not user.userprofile %}
   <script>
     window.location.href = "{% url 'login' %}";
   </script>
 {% endif %}
-
-<a href="{% url 'logout' %}">Logout</a>
-<nav>
-    <a href="{% url 'analyzed_comments' %}">Analyzed Comments</a>
-    <a href="{% url 'unanalyzed_comments' %}">Unanalyzed Comments</a>
-</nav>
 
 {% if is_admin %}
         <h3>Admin View - Moderators' Stats</h3>
@@ -47,10 +45,7 @@
         </table>
 
     {% else %}
-        <form method="POST" action="{% url 'fetch_posts' %}">
-            {% csrf_token %}
-            <button type="submit">Fetch Posts</button>
-        </form>
+
         <h3>Your Stats</h3>
         {% if stats %}
             <table class="table table-bordered">
@@ -99,4 +94,4 @@
             <p>No statistics available for you yet.</p>
         {% endif %}
     {% endif %}
-
+{% endblock %}

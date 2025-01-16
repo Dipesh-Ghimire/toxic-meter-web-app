@@ -1,25 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook Posts</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-    </style>
-</head>
-<body>
-    <h2>Facebook Posts</h2>
+{% extends "base.html" %}
+{% block content %}
+<h2>Facebook Posts</h2>
+<form method="POST" action="{% url 'fetch_posts' %}">
+    {% csrf_token %}
+    <button type="submit">Fetch Posts from Facebook</button>
+</form>
     <table>
         <thead>
             <tr>
@@ -46,7 +31,6 @@
         </tbody>
     </table>
     <a href="{% url 'dashboard' %}">Back to Dashboard</a>
-</body>
 <!-- Display Django messages dynamically -->
 <script>
     function showMessage(type, message) {
@@ -60,4 +44,4 @@
       {% endwith %}
   {% endif %}
   </script>
-</html>
+{% endblock %}

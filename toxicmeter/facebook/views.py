@@ -26,7 +26,7 @@ def fetch_posts(request):
     else:
         messages.error(request, "Failed to fetch posts. Please check your Access Token and Page ID.")
     
-    return redirect('dashboard')
+    return redirect('view_posts')
 
 @login_required
 def view_posts(request):

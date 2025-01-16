@@ -1,27 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Manage Facebook Access Token</title>
-    <style>
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      table,
-      th,
-      td {
-        border: 1px solid black;
-      }
-      th,
-      td {
-        padding: 10px;
-        text-align: left;
-      }
-    </style>
-  </head>
-  <body>
+{% extends "base.html" %}
+{% block content %}
     <h2>Manage Facebook Access Token</h2>
 
     <!-- Form for updating token and page ID -->
@@ -87,7 +65,4 @@
     {% else %}
     <p>No moderators assigned to your token.</p>
     {% endif %}
-
-    <a href="{% url 'dashboard' %}">Back to Dashboard</a>
-  </body>
-</html>
+{% endblock %}
