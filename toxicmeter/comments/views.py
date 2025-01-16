@@ -8,14 +8,22 @@ from .models import CommentStats, DeletedComment
 from ml_integration.services import store_bulk_predictions, store_single_prediction
 from facebook.facebook_api import delete_facebook_comment, hide_facebook_comment , unhide_facebook_comment
 from django.contrib.auth.decorators import login_required
-
+from django.core.paginator import Paginator
 
 
 # View for Analyzed Comments
 @login_required
 def analyzed_comments(request):
-    comments = FacebookComment.objects.filter(toxicity_parameters__isnull=False).select_related('toxicity_parameters')
-    return render(request, 'comments/analyzed_comments.html', {'comments': comments})
+    # Filter comments with toxicity parameters
+    comments = FacebookComment.objects.filter(toxicity_parameters__isnull=False).select_related('toxicity_parameters').order_by('-toxicity_parameters__predicted_at')
+    
+    # Paginate the comments (10 comments per page)
+    paginator = Paginator(comments, 10)
+    page_number = request.GET.get('page')  # Get current page number from query parameters
+    page_obj = paginator.get_page(page_number)  # Fetch the current page
+    
+    # Pass the paginated data to the template
+    return render(request, 'comments/analyzed_comments.html', {'page_obj': page_obj, 'comments': page_obj.object_list})
 
 # View for Unanalyzed Comments
 @login_required
