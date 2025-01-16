@@ -30,9 +30,16 @@ def analyzed_comments(request):
 def unanalyzed_comments(request):
     """
     Fetch and display all comments that have not been analyzed (no ToxicityParameters entry).
+    Paginate the comments for better viewing.
     """
     comments = FacebookComment.objects.filter(toxicity_parameters__isnull=True).select_related('post')
-    return render(request, 'comments/unanalyzed_comments.html', {'comments': comments})
+    
+    # Pagination logic
+    paginator = Paginator(comments, 10)  # Show 10 comments per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'comments/unanalyzed_comments.html', {'comments': page_obj})
 
 # Analyze Comment
 @login_required

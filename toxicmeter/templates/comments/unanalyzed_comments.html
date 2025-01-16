@@ -1,37 +1,80 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Unanalyzed Comments</h1>
+<div class="relative overflow-x-auto shadow-md sm:rounded-lg my-8">
+    <h1 class="text-2xl font-semibold text-gray-800 dark:text mb-4">Unanalyzed Comments</h1>
 
-<!-- Bulk Analyze Button -->
-<form method="POST" action="{% url 'analyze_bulk_comments' %}">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-primary btn-sm">Analyze All Comments</button>
-</form>
+    <!-- Bulk Analyze Button -->
+    <form method="POST" action="{% url 'analyze_bulk_comments' %}" class="mb-4">
+        {% csrf_token %}
+        <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+            Analyze All Comments
+        </button>
+    </form>
 
-<table>
-    <thead>
-        <tr>
-            <th>Post ID</th>
-            <th>Comment</th>
-            <th>User</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for comment in comments %}
-        <tr>
-            <td>{{ comment.post.post_id }}</td>
-            <td>{{ comment.content }}</td>
-            <td>{{ comment.user_name }}</td>
-            <td>
-                <!-- Analyze Single Comment -->
-                <form method="POST" action="{% url 'analyze_comment' comment.id %}" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-success btn-sm">Analyze</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+                <th scope="col" class="px-6 py-3">Post ID</th>
+                <th scope="col" class="px-6 py-3">Comment</th>
+                <th scope="col" class="px-6 py-3">User</th>
+                <th scope="col" class="px-6 py-3">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for comment in comments %}
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                <td class="px-6 py-4">{{ comment.post.post_id|slice:"-18:" }}</td>
+                <td class="px-6 py-4">{{ comment.content }}</td>
+                <td class="px-6 py-4">{{ comment.user_name }}</td>
+                <td class="px-6 py-4">
+                    <!-- Analyze Single Comment -->
+                    <form method="POST" action="{% url 'analyze_comment' comment.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-900">
+                            Analyze
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                    No comments available.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <nav class="flex items-center justify-between pt-4" aria-label="Table navigation">
+        <span class="text-sm font-normal text-gray-500 dark:text">
+            Showing 
+            <span class="font-semibold text-gray-900 dark:text">{{ page_obj.start_index }}-{{ page_obj.end_index }}</span> 
+            of <span class="font-semibold text-gray-900 dark:text">{{ page_obj.paginator.count }}</span>
+        </span>
+        <ul class="inline-flex items-center -space-x-px">
+            {% if page_obj.has_previous %}
+            <li>
+                <a href="?page={{ page_obj.previous_page_number }}" class="flex items-center justify-center px-3 h-8 text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700">
+                    Previous
+                </a>
+            </li>
+            {% endif %}
+            {% for i in page_obj.paginator.page_range %}
+            <li class="inline-block mx-3 mr-2">
+                <a href="?page={{ i }}" class="{% if i == page_obj.number %}text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700{% else %}text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700{% endif %}">
+                    {{ i }}
+                </a>
+            </li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="inline-block mx-3 mr-2">
+                <a href="?page={{ page_obj.next_page_number }}" class="flex items-center justify-center px-3 h-8 text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700">
+                    Next
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
 {% endblock %}
