@@ -37,7 +37,9 @@ def view_posts(request):
 
     # Retrieve all Facebook posts from the database
     posts = FacebookPost.objects.all().order_by('-created_at')  # Display newest posts first
-
+    # Slicing post_id to only show the second part
+    for post in posts:
+        post.post_id_display = post.post_id.split('_')[1]
     return render(request, 'facebook/posts.html', {'posts': posts})
 
 @login_required

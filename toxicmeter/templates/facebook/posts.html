@@ -1,47 +1,64 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Facebook Posts</h2>
-<form method="POST" action="{% url 'fetch_posts' %}">
-    {% csrf_token %}
-    <button type="submit">Fetch Posts from Facebook</button>
-</form>
-    <table>
-        <thead>
+<div class="relative overflow-x-auto shadow-md sm:rounded-lg my-8">
+    <h2 class="text-2xl font-semibold text-gray-800 dark:text mb-4">Facebook Posts</h2>
+
+    <!-- Form to fetch posts from Facebook -->
+    <form method="POST" action="{% url 'fetch_posts' %}" class="mb-4">
+        {% csrf_token %}
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            Fetch Posts from Facebook
+        </button>
+    </form>
+
+    <!-- Table to display posts -->
+    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-                <th>Post ID</th>
-                <th>Message</th>
-                <th>Created At</th>
-                <th>Actions</th>
+                <th scope="col" class="px-6 py-3">Post ID</th>
+                <th scope="col" class="px-6 py-3">Message</th>
+                <th scope="col" class="px-6 py-3">Created At</th>
+                <th scope="col" class="px-6 py-3">Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for post in posts %}
-                <tr>
-                    <td>{{ post.post_id }}</td>
-                    <td>{{ post.message|default:"No message" }}</td>
-                    <td>{{ post.created_at|date:"Y-m-d H:i:s" }}</td>
-                    <td>
-                        <form method="POST" action="{% url 'fetch_comments' post.post_id %}">
-                            {% csrf_token %}
-                            <button type="submit">Fetch Comments</button>
-                        </form>
-                    </td>
-                </tr>
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                <td class="px-6 py-4">{{ post.post_id_display }}</td>
+                <td class="px-6 py-4">{{ post.message|default:"No message" }}</td>
+                <td class="px-6 py-4">{{ post.created_at|date:"Y-m-d H:i:s" }}</td>
+                <td class="px-6 py-4">
+                    <form method="POST" action="{% url 'fetch_comments' post.post_id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            Fetch Comments
+                        </button>
+                    </form>
+                </td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
-    <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+
+    <!-- Back to Dashboard Link -->
+    <div class="mt-4">
+        <a href="{% url 'dashboard' %}" class="text-blue-600 hover:text-blue-700">
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+
 <!-- Display Django messages dynamically -->
 <script>
     function showMessage(type, message) {
-      alert(`${type.toUpperCase()}: ${message}`);
+        alert(`${type.toUpperCase()}: ${message}`);
     }
-      {% if messages %}
-      {% with messages|slice:":1" as recent_messages %} <!-- Get only the first message -->
-          {% for message in recent_messages %}
-              showMessage("{{ message.tags }}", "{{ message }}");
-          {% endfor %}
-      {% endwith %}
-  {% endif %}
-  </script>
+    {% if messages %}
+    {% with messages|slice:":1" as recent_messages %} <!-- Get only the first message -->
+        {% for message in recent_messages %}
+            showMessage("{{ message.tags }}", "{{ message }}");
+        {% endfor %}
+    {% endwith %}
+    {% endif %}
+</script>
 {% endblock %}

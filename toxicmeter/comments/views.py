@@ -16,7 +16,8 @@ from django.core.paginator import Paginator
 def analyzed_comments(request):
     # Filter comments with toxicity parameters
     comments = FacebookComment.objects.filter(toxicity_parameters__isnull=False).select_related('toxicity_parameters').order_by('-toxicity_parameters__predicted_at')
-    
+    for c in comments:
+        c.post_id_display = c.post.post_id.split('_')[1]
     # Paginate the comments (10 comments per page)
     paginator = Paginator(comments, 10)
     page_number = request.GET.get('page')  # Get current page number from query parameters
@@ -245,6 +246,8 @@ def deleted_comments(request):
     # Fetch all deleted comments from the DeletedComment model
     deleted_comments = DeletedComment.objects.all().order_by('-deleted_at')
     
+    for c in deleted_comments:
+        c.comment_id_display = c.comment_id.split('_')[1]
     # Check if the 'download_csv' parameter is in the request
     if 'download_csv' in request.GET:
         # Create a CSV file and send it as a response
