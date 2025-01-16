@@ -1,58 +1,86 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Deleted Comments Dashboard</h1>
+<div class="relative overflow-x-auto shadow-md sm:rounded-lg my-8">
+    <h1 class="text-2xl font-semibold text-gray-800 dark:text mb-4">Deleted Comments Dashboard</h1>
 
+    <!-- Button to download CSV -->
+     <div>
 
-<!-- Button to download CSV -->
-<a href="{% url 'deleted_comments' %}?download_csv=true" class="btn btn-primary mb-3">
-    Download CSV of Deleted Comments
-</a>
+         <a href="{% url 'deleted_comments' %}?download_csv=true" class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-3 py-2 mb-4 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-800">
+             Download CSV of Deleted Comments
+            </a>
+    </div>
 
-<!-- Table to display deleted comments -->
-<table class="table">
-    <thead>
-        <tr>
-            <th>Comment ID</th>
-            <th>Content</th>
-            <th>User</th>
-            <th>Toxicity Parameters</th>
-            <th>Reason for Deletion</th>
-            <th>Deleted At</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for comment in deleted_comments %}
+    <!-- Table to display deleted comments -->
+    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-                <td>{{ comment.comment_id }}</td>
-                <td>{{ comment.content }}</td>
-                <td>{{ comment.user_name }}</td>
-                <td>
-                    <ul>
-                        {% if comment.toxic %}
-                            <li>Toxic</li>
-                        {% endif %}
-                        {% if comment.severe_toxic %}
-                            <li>Severe Toxic</li>
-                        {% endif %}
-                        {% if comment.obscene %}
-                            <li>Obscene</li>
-                        {% endif %}
-                        {% if comment.threat %}
-                            <li>Threat</li>
-                        {% endif %}
-                        {% if comment.insult %}
-                            <li>Insult</li>
-                        {% endif %}
-                        {% if comment.identity_hate %}
-                            <li>Identity Hate</li>
-                        {% endif %}
+                <th scope="col" class="px-6 py-3">Comment ID</th>
+                <th scope="col" class="px-6 py-3">Content</th>
+                <th scope="col" class="px-6 py-3">User</th>
+                <th scope="col" class="px-6 py-3">Toxicity Parameters</th>
+                <th scope="col" class="px-6 py-3">Reason for Deletion</th>
+                <th scope="col" class="px-6 py-3">Deleted At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for comment in deleted_comments %}
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                <td class="px-6 py-4">{{ comment.comment_id|slice:"-16:" }}</td>
+                <td class="px-6 py-4">{{ comment.content }}</td>
+                <td class="px-6 py-4">{{ comment.user_name }}</td>
+                <td class="px-6 py-4">
+                    <ul class="list-disc pl-4">
+                        {% if comment.toxic %}<li class="text-red-600">Toxic</li>{% endif %}
+                        {% if comment.severe_toxic %}<li class="text-red-700">Severe Toxic</li>{% endif %}
+                        {% if comment.obscene %}<li class="text-orange-600">Obscene</li>{% endif %}
+                        {% if comment.threat %}<li class="text-yellow-600">Threat</li>{% endif %}
+                        {% if comment.insult %}<li class="text-purple-600">Insult</li>{% endif %}
+                        {% if comment.identity_hate %}<li class="text-indigo-600">Identity Hate</li>{% endif %}
                     </ul>
                 </td>
-                <td>{{ comment.reason_for_deletion }}</td>
-                <td>{{ comment.deleted_at }}</td>
+                <td class="px-6 py-4">{{ comment.reason_for_deletion }}</td>
+                <td class="px-6 py-4">{{ comment.deleted_at }}</td>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                    No deleted comments available.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
+    <!-- Pagination (if needed) -->
+    <nav class="flex items-center justify-between pt-4" aria-label="Table navigation">
+        <span class="text-sm font-normal text-gray-500 dark:text">Showing 
+            <span class="font-semibold text-gray-900 dark:text">{{ page_obj.start_index }}-{{ page_obj.end_index }}</span> 
+            of <span class="font-semibold text-gray-900 dark:text">{{ page_obj.paginator.count }}</span>
+        </span>
+        <ul class="inline-flex items-center -space-x-px">
+            {% if page_obj.has_previous %}
+            <li>
+                <a href="?page={{ page_obj.previous_page_number }}" class="flex items-center justify-center px-3 h-8 text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700">
+                    Previous
+                </a>
+            </li>
+            {% endif %}
+            {% for i in page_obj.paginator.page_range %}
+            <li class="inline-block mx-3 mr-2">
+                <a href="?page={{ i }}" class="{% if i == page_obj.number %}text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700{% else %}text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700{% endif %}">
+                    {{ i }}
+                </a>
+            </li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li style="margin-inline: 20px;" class="inline-block">
+                <a href="?page={{ page_obj.next_page_number }}" class="flex items-center justify-center px-3 h-8 text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700">
+                    Next
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
 {% endblock %}

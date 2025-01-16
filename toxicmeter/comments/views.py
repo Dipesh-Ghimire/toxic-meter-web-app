@@ -277,3 +277,12 @@ def deleted_comments(request):
     return render(request, 'comments/deleted_comments.html', {
         'deleted_comments': deleted_comments,
     })
+
+def paginate_comments(request, comments_list):
+    """
+    Helper function to paginate the comments queryset.
+    """
+    paginator = Paginator(comments_list, 10)  # Show 10 comments per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return page_obj
