@@ -50,7 +50,7 @@ def user_logout(request):
 @login_required
 def dashboard(request):
     # Check if the logged-in user is an admin
-    if request.user.is_superuser:  # Admins can see stats for all moderators
+    if request.user.userprofile.role == 'admin':  # Admins can see stats for all moderators
         moderators = User.objects.filter(userprofile__role='moderator')  # Get all moderators
         stats_data = []
         for moderator in moderators:
