@@ -31,6 +31,7 @@ def user_login(request):
             user = authenticate(request, username=username, password=password)
             if user:
                 login(request, user)
+                messages.success(request, f"Welcome back, {username}!")
                 return redirect('dashboard')  # Redirect to dashboard
             else:
                 messages.error(request, "Invalid username or password.")

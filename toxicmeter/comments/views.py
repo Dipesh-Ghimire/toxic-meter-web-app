@@ -57,12 +57,13 @@ def analyze_comment(request, comment_id):
             stats.save()
         except CommentStats.DoesNotExist:
             CommentStats.objects.create(moderator=comment.post.moderator, comments_analyzed=1)
+        messages.success(request, "Comment analyzed successfully.")
         # Redirect back to unanalyzed comments page after analysis
-        return redirect('unanalyzed_comments')
+        return redirect('analyzed_comments')
     else:
         # Handle the error gracefully (optional)
         messages.error(request, "Failed to analyze the comment.")
-        return redirect('analyzed_comments')
+        return redirect('unanalyzed_comments')
 @login_required
 def analyze_bulk_comments(request):
     """
@@ -80,6 +81,7 @@ def analyze_bulk_comments(request):
             stats.save()
         except CommentStats.DoesNotExist:
             CommentStats.objects.create(moderator=request.user, comments_analyzed=1)
+        messages.success(request, f"{comment_count} comments analyzed successfully.")
         # Redirect back to unanalyzed comments page after analysis
         return redirect('unanalyzed_comments')
     else:
