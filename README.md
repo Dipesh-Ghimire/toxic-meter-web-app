@@ -57,4 +57,11 @@ python manage.py runserver
 
 Visit [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser to see the project.
 
+### 6. Run the Tailwind Server
+
+Start the Tailwind development server:
+
+```bash
+python manage.py tailwind start
+```
 ---

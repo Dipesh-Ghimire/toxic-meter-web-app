@@ -1,68 +1,89 @@
 {% extends "base.html" %}
 {% block content %}
-    <h2>Manage Facebook Access Token</h2>
-
-    <!-- Form for updating token and page ID -->
-    <form method="POST">
-      {% csrf_token %} {{ token_form.as_p }}
-      <button type="submit" name="update_token">Save Token and Page ID</button>
-    </form>
-
-    <h3>Assign Token to a Moderator</h3>
-    <form method="POST">
-        {% csrf_token %}
-        {{ assign_form.as_p }}
-        <button type="submit" name="assign_token">Assign Token</button>
-    </form>
-
-    <hr />
-
+    {% comment %} <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-4">Manage Facebook Access Token</h2> {% endcomment %}
     <!-- Display current token information -->
-    <h3>Your Facebook Token Information</h3>
-    {% if admin_profile.facebook_access_token and admin_profile.facebook_page_id%}
-    <p>
-      <strong>Access Token:</strong> {{ admin_profile.facebook_access_token|slice:":50" }}...
-    </p>
-    <p><strong>Page ID:</strong> {{ admin_profile.facebook_page_id }}</p>
-    <p><strong>Token Active:</strong> {{ admin_profile.token_active }}</p>
-    {% else %}
-    <p>
-      You have not configured your Access Token or Page ID yet. Please use the
-      form above to set them up.
-    </p>
-    {% endif %}
-
-    <hr />
-
-    <!-- Display assigned moderators -->
-    <h3>Moderators Using Your Token</h3>
-    {% if assigned_moderators %}
-    <table>
-      <thead>
-        <tr>
-          <th>Moderator Name</th>
-          <th>Assigned Date</th>
-          <th>Token Active</th>
-          <th>Remove Moderators</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for moderator in assigned_moderators %}
-        <tr>
-          <td>{{ moderator.user.username }}</td>
-          <td>{{ moderator.user.date_joined|date:"d M Y" }}</td>
-          <td>{{ moderator.token_active }}</td>
-          <td>
-            <form method="POST" action="{% url 'remove_moderator' moderator.user.id %}">
-                {% csrf_token %}
-                <button type="submit" onclick="return confirm('Are you sure you want to remove this moderator?')">Remove</button>
-            </form>
-        </td>
-        </tr>
+    <div class="bg-white shadow-md rounded-lg p-6 dark:bg-gray-800 m-7">
+      <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">Your Facebook Token Information</h3>
+      
+      {% if admin_profile.facebook_access_token and admin_profile.facebook_page_id %}
+          <p class="text-gray-900 dark:text-gray-300">
+              <strong class="font-medium">Access Token:</strong> {{ admin_profile.facebook_access_token|slice:":50" }}...
+          </p>
+          <p class="text-gray-900 dark:text-gray-300">
+              <strong class="font-medium">Page ID:</strong> {{ admin_profile.facebook_page_id }}
+          </p>
+          <p class="text-gray-900 dark:text-gray-300">
+              <strong class="font-medium">Token Active:</strong> {{ admin_profile.token_active }}
+          </p>
+      {% else %}
+          <p class="text-red-600 dark:text-red-400">
+              You have not configured your Access Token or Page ID yet. Please use the form above to set them up.
+          </p>
+      {% endif %}
+  </div>
+    <div class="flex flex-col md:flex-row gap-6">
+      <!-- Form for updating token and page ID -->
+      <form method="POST" class="w-full md:w-1/2 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+        {% csrf_token %}
+        {% for field in token_form %}
+        <div class="mb-5">
+          <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ field.label }}</label>
+          {{ field }}
+        </div>
         {% endfor %}
-      </tbody>
+        <button type="submit" name="update_token" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Save Token and Page ID</button>
+      </form>
+  
+      <!-- Form for assigning token to a moderator -->
+      <form method="POST" class="w-full md:w-1/2 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+          {% csrf_token %}
+          {% for field in assign_form %}
+          <div class="mb-5">
+            <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ field.label }}</label>
+            {{ field }}
+          </div>
+          {% endfor %}
+          <button type="submit" name="assign_token" class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Assign Token</button>
+      </form>
+  </div>
+
+    <h3 class="text-xl font-semibold text-gray-700 dark:text-black">Moderators Using Your Token</h3>
+    {% if assigned_moderators %}
+    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+                <th scope="col" class="px-6 py-3">Moderator Name</th>
+                <th scope="col" class="px-6 py-3">Assigned Date</th>
+                <th scope="col" class="px-6 py-3">Token Active</th>
+                <th scope="col" class="px-6 py-3">Remove Moderators</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for moderator in assigned_moderators %}
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-25 dark:hover:bg-gray-600 dark:text-white">
+                <td class="px-6 py-4">{{ moderator.user.username }}</td>
+                <td class="px-6 py-4">{{ moderator.user.date_joined|date:"d M Y" }}</td>
+                <td class="px-6 py-4">
+                    {% if moderator.token_active %}
+                        <span class="text-green-600 font-bold">Active</span>
+                    {% else %}
+                        <span class="text-red-600 font-bold">Inactive</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 text-white">
+                    <form method="POST" action="{% url 'remove_moderator' moderator.user.id %}">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('Are you sure you want to remove this moderator?')"
+                            class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-900">
+                            Remove
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
     {% else %}
-    <p>No moderators assigned to your token.</p>
+    <p class="mt-4 text-gray-500 dark:text-gray-400 text-center">No moderators assigned yet.</p>
     {% endif %}
 {% endblock %}
