@@ -41,17 +41,4 @@
     </table>
 </div>
 
-<!-- Display Django messages dynamically -->
-<script>
-    function showMessage(type, message) {
-        alert(`${type.toUpperCase()}: ${message}`);
-    }
-    {% if messages %}
-    {% with messages|slice:":1" as recent_messages %} <!-- Get only the first message -->
-        {% for message in recent_messages %}
-            showMessage("{{ message.tags }}", "{{ message }}");
-        {% endfor %}
-    {% endwith %}
-    {% endif %}
-</script>
 {% endblock %}
