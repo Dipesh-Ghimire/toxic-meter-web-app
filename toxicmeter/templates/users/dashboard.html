@@ -134,4 +134,47 @@
             <p>No statistics available for you yet.</p>
         {% endif %}
     {% endif %}
+    {% comment %} Pie Chart + Bar Chart using Chart.js {% endcomment %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 px-4 sm:px-8">
+        <!-- Pie Chart for Toxic vs. Non-Toxic Comments -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Toxic vs. Non-Toxic Comments</h3>
+            <canvas id="toxicityChart"></canvas>
+        </div>
+    
+        <!-- Bar Chart for Detailed Toxicity Levels -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Toxicity Breakdown</h3>
+            <canvas id="toxicityBreakdownChart"></canvas>
+        </div>
+    </div>
+    <script>
+        // Pie Chart (Toxic vs. Non-Toxic)
+        const ctx1 = document.getElementById('toxicityChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: {{ chart_data.labels|safe }},
+                datasets: [{
+                    label: 'Comments Sentiment',
+                    data: {{ chart_data.data|safe }},
+                    backgroundColor: ['#10b981', '#ef4444']
+                }]
+            }
+        });
+    
+        // Bar Chart (Detailed Toxicity Levels)
+        const ctx2 = document.getElementById('toxicityBreakdownChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_data.toxicity_labels|safe }},
+                datasets: [{
+                    label: 'Toxicity Levels',
+                    data: {{ chart_data.toxicity_data|safe }},
+                    backgroundColor: ['#ef4444', '#f59e0b', '#facc15', '#a855f7', '#6366f1']
+                }]
+            }
+        });
+    </script>
 {% endblock %}

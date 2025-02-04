@@ -4,13 +4,14 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-from facebook.models import FacebookComment
+from facebook.models import FacebookComment, FacebookPost
 from ml_integration.services import store_single_prediction
+from ml_integration.models import ToxicityParameters
 
 from .models import UserProfile
 from .forms import AssignTokenForm, UserRegisterForm, UserLoginForm, AdminTokenForm
 from django.contrib import messages
-from comments.models import CommentStats
+from comments.models import CommentStats, DeletedComment
 
 # Registration View
 def register(request):
@@ -34,7 +35,6 @@ def user_login(request):
             user = authenticate(request, username=username, password=password)
             if user:
                 login(request, user)
-                messages.success(request, f"Welcome back, {username}!")
                 return redirect('dashboard')  # Redirect to dashboard
             else:
                 messages.error(request, "Invalid username or password.")
@@ -77,6 +77,39 @@ def dashboard(request):
             stats.is_model_serving = False
             stats.save()
             return False
+
+    user_profile1 = UserProfile.objects.get(user=request.user)
+    # Step 1: Determine which posts the user should see
+    if request.user.userprofile.role == "admin":
+        posts = FacebookPost.objects.filter(fetched_by=request.user)  # Admin sees his fetched posts
+    else:
+        posts = FacebookPost.objects.filter(fetched_by=user_profile1.assigned_by)  # Moderators see posts fetched by their admin
+
+    # Step 2: Get only comments from these posts
+    comments = FacebookComment.objects.filter(post__in=posts)
+    deleted_comments = DeletedComment.objects.filter(post__in=posts)
+    # Step 3: Filter toxicity parameters based on these comments
+    toxic_params = ToxicityParameters.objects.filter(comment__in=comments)
+
+    # Step 4: Count toxicity levels
+    total_comments = comments.count() + deleted_comments.count()  # Include deleted ones
+    toxic_count = toxic_params.filter(toxic=True).count() + deleted_comments.filter(toxic=True).count()
+    non_toxic_count = total_comments - toxic_count
+
+    severe_toxic_count = toxic_params.filter(severe_toxic=True).count() + deleted_comments.filter(severe_toxic=True).count()
+    obscene_count = toxic_params.filter(obscene=True).count() + deleted_comments.filter(obscene=True).count()
+    threat_count = toxic_params.filter(threat=True).count() + deleted_comments.filter(threat=True).count()
+    insult_count = toxic_params.filter(insult=True).count() + deleted_comments.filter(insult=True).count()
+    identity_hate_count = toxic_params.filter(identity_hate=True).count() + deleted_comments.filter(identity_hate=True).count()
+
+    # Step 5: Prepare data for Chart.js
+    chart_data = {
+        "labels": ["Non-Toxic", "Toxic"],
+        "data": [non_toxic_count, toxic_count],
+        "toxicity_labels": ["Toxic", "Severe Toxic", "Obscene", "Threat", "Insult", "Identity Hate"],
+        "toxicity_data": [toxic_count, severe_toxic_count, obscene_count, threat_count, insult_count, identity_hate_count],
+    }
+
     if request.user.userprofile.role == 'admin':  # Admins can see stats for all moderators
         checkModelServing()
         moderators = User.objects.filter(userprofile__role='moderator')  # Get all moderators
@@ -110,7 +143,7 @@ def dashboard(request):
                 'stats': None,
                 'user': request.user,
             }
-    
+    context['chart_data'] = chart_data
     return render(request, 'users/dashboard.html', context)
 
 
