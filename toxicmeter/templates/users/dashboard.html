@@ -128,7 +128,7 @@
             data: {
                 labels: {{ chart_data.toxicity_labels|safe }},
                 datasets: [{
-                    label: 'Toxicity Levels',
+                    label: 'Toxicity Parameters Count',
                     data: {{ chart_data.toxicity_data|safe }},
                     backgroundColor: ['#ef4444', '#f59e0b', '#facc15', '#a855f7', '#6366f1']
                 }]
@@ -175,5 +175,23 @@
                 {% endfor %}
             </tbody>
         </table>
-{% endif %}
+    {% endif %}
+    {% comment %} Facebook Embedding {% endcomment %}
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-8 border border-gray-200 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Your Facebook Page</h3>
+        {% if user_profile.facebook_page_id %}
+            <iframe 
+                src="https://www.facebook.com/plugins/page.php?href=https://www.facebook.com/{{ user_profile.facebook_page_id }}&tabs=timeline&width=500&height=600&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true"
+                width="100%" 
+                height="600"
+                class="border-none overflow-hidden rounded-lg shadow-md dark:bg-gray-700" 
+                scrolling="no" 
+                frameborder="0" 
+                allowfullscreen="true"
+                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+            </iframe>
+        {% else %}
+            <p class="text-gray-500 dark:text-gray-400">Your Facebook Page is not linked. Please configure your Page ID.</p>
+        {% endif %}
+    </div>
 {% endblock %}

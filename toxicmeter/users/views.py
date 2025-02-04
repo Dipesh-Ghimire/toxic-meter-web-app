@@ -144,6 +144,7 @@ def dashboard(request):
                 'user': request.user,
             }
     context['chart_data'] = chart_data
+    context['user_profile'] = user_profile1
     return render(request, 'users/dashboard.html', context)
 
 

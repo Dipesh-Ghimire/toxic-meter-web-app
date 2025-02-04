@@ -15,7 +15,7 @@
     {% if messages %}
     <div class="fixed top-5 right-5 space-y-2 z-50 mt-10">
         {% for message in messages %}
-            <div class="px-4 py-3 rounded-lg shadow-md text-white 
+            <div class="alert-message px-4 py-3 rounded-lg shadow-md text-white 
                 {% if message.tags == 'success' %} bg-green-500 {% elif message.tags == 'error' %} bg-red-500 {% elif message.tags == 'warning' %} bg-yellow-500 {% else %} bg-blue-500 {% endif %}">
                 {{ message }}
                 <button onclick="this.parentElement.remove()" class="ml-4 text-white font-bold">
@@ -38,6 +38,17 @@
             {% include "partials/footer.html" %}
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(function () {
+                let messages = document.querySelectorAll(".alert-message");
+                messages.forEach(function (message) {
+                    message.classList.add("opacity-0", "transition-opacity", "duration-1000");
+                    setTimeout(() => message.remove(), 1000);
+                });
+            }, 3000);
+        });
+    </script>
     
 </body>
 </html> 
