@@ -73,6 +73,9 @@ def dashboard(request):
                 messages.error(request, "ML Model is not responding. Please check the server.")
                 return True
         else:
+            stats, created = CommentStats.objects.get_or_create(moderator=request.user)
+            stats.is_model_serving = False
+            stats.save()
             return False
     if request.user.userprofile.role == 'admin':  # Admins can see stats for all moderators
         checkModelServing()
