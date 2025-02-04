@@ -256,11 +256,6 @@ def deleted_comments(request):
     - Only shows deleted comments related to the Moderator's assigned admin.
     """
     user_profile = UserProfile.objects.get(user=request.user)
-
-    if user_profile.role != 'moderator':
-        messages.error(request, "Only Moderators can view deleted comments.")
-        return redirect('view_posts')
-
     if user_profile.assigned_by:
         admin_profile = UserProfile.objects.get(user=user_profile.assigned_by)
         
@@ -268,6 +263,9 @@ def deleted_comments(request):
         user_posts = FacebookPost.objects.filter(fetched_by=admin_profile.user)
 
         # Fetch only deleted comments that match the user's posts
+        deleted_comments = DeletedComment.objects.filter(post__in=user_posts).order_by('-deleted_at')
+    elif user_profile.role == 'admin':
+        user_posts = FacebookPost.objects.filter(fetched_by=request.user)
         deleted_comments = DeletedComment.objects.filter(post__in=user_posts).order_by('-deleted_at')
     else:
         deleted_comments = DeletedComment.objects.none()  # No assigned admin, no deleted comments
