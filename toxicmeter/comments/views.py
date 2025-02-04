@@ -2,8 +2,10 @@ import csv
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from facebook.models import FacebookComment
+from facebook.models import FacebookComment, FacebookPost
 from ml_integration.models import ToxicityParameters
+from .services import get_user_posts
+from users.models import UserProfile
 from .models import CommentStats, DeletedComment
 from ml_integration.services import store_bulk_predictions, store_single_prediction
 from facebook.facebook_api import delete_facebook_comment, hide_facebook_comment , unhide_facebook_comment
@@ -14,29 +16,39 @@ from django.core.paginator import Paginator
 # View for Analyzed Comments
 @login_required
 def analyzed_comments(request):
-    # Filter comments with toxicity parameters
-    comments = FacebookComment.objects.filter(toxicity_parameters__isnull=False).select_related('toxicity_parameters').order_by('-toxicity_parameters__predicted_at')
+    """
+    View analyzed comments with toxicity parameters, restricted to user-accessible posts.
+    """
+    user_posts = get_user_posts(request.user)
+    comments = FacebookComment.objects.filter(
+        toxicity_parameters__isnull=False,
+        post__in=user_posts
+    ).select_related('toxicity_parameters', 'post').order_by('-toxicity_parameters__predicted_at')
+
     for c in comments:
         c.post_id_display = c.post.post_id.split('_')[1]
-    # Paginate the comments (10 comments per page)
+
+    # Pagination (10 comments per page)
     paginator = Paginator(comments, 10)
-    page_number = request.GET.get('page')  # Get current page number from query parameters
-    page_obj = paginator.get_page(page_number)  # Fetch the current page
-    
-    # Pass the paginated data to the template
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'comments/analyzed_comments.html', {'page_obj': page_obj, 'comments': page_obj.object_list})
 
 # View for Unanalyzed Comments
 @login_required
 def unanalyzed_comments(request):
     """
-    Fetch and display all comments that have not been analyzed (no ToxicityParameters entry).
-    Paginate the comments for better viewing.
+    Fetch and display unanalyzed comments (no ToxicityParameters entry) restricted to user-accessible posts.
     """
-    comments = FacebookComment.objects.filter(toxicity_parameters__isnull=True).select_related('post')
-    
-    # Pagination logic
-    paginator = Paginator(comments, 10)  # Show 10 comments per page
+    user_posts = get_user_posts(request.user)
+    comments = FacebookComment.objects.filter(
+        toxicity_parameters__isnull=True,
+        post__in=user_posts
+    ).select_related('post')
+
+    # Pagination (10 comments per page)
+    paginator = Paginator(comments, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -121,6 +133,7 @@ def delete_comment(request, comment_id):
     # Store the deleted comment with its toxicity parameters
     if toxicity_parameters:
         DeletedComment.objects.create(
+            post=comment.post,  # Store the post directly
             comment_id=comment.comment_id,  # Store the comment_id directly
             content=comment.content,  # Store the content
             user_name=comment.user_name,
@@ -135,6 +148,7 @@ def delete_comment(request, comment_id):
     else:
         # If toxicity parameters are not available, still store the comment (without toxicity details)
         DeletedComment.objects.create(
+            post=comment.post,  # Store the post directly
             comment_id=comment.comment_id,  # Store the comment_id directly
             content=comment.content,  # Store the content
             user_name=comment.user_name,
@@ -237,22 +251,32 @@ def unhide_comment(request, comment_id):
 @login_required
 def deleted_comments(request):
     """
-    View to show all the deleted comments.
-    Only accessible by Moderators.
+    View deleted comments.
+    - Only accessible by Moderators.
+    - Only shows deleted comments related to the Moderator's assigned admin.
     """
-    # Ensure the user is a Moderator
-    if request.user.userprofile.role != 'moderator':
+    user_profile = UserProfile.objects.get(user=request.user)
+
+    if user_profile.role != 'moderator':
         messages.error(request, "Only Moderators can view deleted comments.")
         return redirect('view_posts')
-    
-    # Fetch all deleted comments from the DeletedComment model
-    deleted_comments = DeletedComment.objects.all().order_by('-deleted_at')
-    
+
+    if user_profile.assigned_by:
+        admin_profile = UserProfile.objects.get(user=user_profile.assigned_by)
+        
+        # Get posts fetched by the assigned admin
+        user_posts = FacebookPost.objects.filter(fetched_by=admin_profile.user)
+
+        # Fetch only deleted comments that match the user's posts
+        deleted_comments = DeletedComment.objects.filter(post__in=user_posts).order_by('-deleted_at')
+    else:
+        deleted_comments = DeletedComment.objects.none()  # No assigned admin, no deleted comments
+
     for c in deleted_comments:
-        c.comment_id_display = c.comment_id.split('_')[1]
-    # Check if the 'download_csv' parameter is in the request
+        c.comment_id_display = c.comment_id.split('_')[1] if '_' in c.comment_id else c.comment_id
+
+    # Handle CSV Download
     if 'download_csv' in request.GET:
-        # Create a CSV file and send it as a response
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="deleted_comments.csv"'
 
@@ -261,7 +285,6 @@ def deleted_comments(request):
             'Comment ID', 'Content', 'Toxic', 'Severe Toxic', 'Obscene', 'Threat', 'Insult', 'Identity Hate', 'Reason for Deletion', 'Deleted At'
         ])
 
-        # Write each comment's details with truth values for toxicity parameters
         for comment in deleted_comments:
             writer.writerow([
                 comment.comment_id,
@@ -278,10 +301,10 @@ def deleted_comments(request):
 
         return response
 
-    # Render the deleted comments in the template
     return render(request, 'comments/deleted_comments.html', {
         'deleted_comments': deleted_comments,
     })
+
 
 def paginate_comments(request, comments_list):
     """

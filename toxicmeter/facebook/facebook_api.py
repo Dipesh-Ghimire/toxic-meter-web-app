@@ -1,5 +1,6 @@
 import requests
 from comments.models import CommentStats
+from users.models import UserProfile
 from .models import FacebookPost, FacebookComment
 from datetime import datetime
 from django.utils.dateparse import parse_datetime
@@ -25,6 +26,12 @@ def fetch_facebook_posts(page_id, access_token, request):
         # Get all post IDs currently in the database for this page
         existing_post_ids = set(FacebookPost.objects.values_list('post_id', flat=True))
         counter = 0
+        user_profile = UserProfile.objects.get(user=request.user)
+        # If user is a moderator, assign post to their admin instead
+        if user_profile.role == 'moderator' and user_profile.assigned_by:
+            fetched_by = user_profile.assigned_by  # Assign the admin
+        else:
+            fetched_by = request.user
         # Iterate through the posts returned by the API
         for post in data.get('data', []):
             if post['id'] not in existing_post_ids:  # Check if post is already in the database
@@ -33,6 +40,7 @@ def fetch_facebook_posts(page_id, access_token, request):
                     post_id=post['id'],
                     message=post.get('message', ''),
                     created_at=datetime.strptime(post['created_time'], "%Y-%m-%dT%H:%M:%S%z"),
+                    fetched_by=fetched_by
                 )
         try:
             stats = request.user.moderator_stats  # Assuming moderator_stats exists for the moderator

@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+from facebook.models import FacebookPost
 # Create your models here.
 class DeletedComment(models.Model):
+    post = models.ForeignKey(FacebookPost, on_delete=models.CASCADE, related_name='deleted_comments', null=True, blank=True)
     comment_id = models.CharField(max_length=255, unique=True)  # Store comment_id directly
     content = models.TextField()  # The content of the deleted comment
     user_name = models.CharField(max_length=255, blank=True, null=True)  # The name of the user who posted the comment

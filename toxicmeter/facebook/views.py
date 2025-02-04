@@ -1,6 +1,7 @@
 from django.shortcuts import redirect,render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from users.models import UserProfile
 from .models import FacebookPost
 from .facebook_api import fetch_facebook_posts,fetch_facebook_comments
 
@@ -30,16 +31,28 @@ def fetch_posts(request):
 
 @login_required
 def view_posts(request):
-    # Ensure the user is a Moderator
-    if request.user.userprofile.role != 'moderator':
-        messages.error(request, "Only Moderators can view posts.")
+    """
+    Ensure only the corresponding admin and their assigned moderators can view posts.
+    """
+    user_profile = UserProfile.objects.get(user=request.user)
+
+    if user_profile.role == 'admin':
+        # Admin can only see posts they fetched
+        posts = FacebookPost.objects.filter(fetched_by=request.user).order_by('-created_at')
+
+    elif user_profile.role == 'moderator' and user_profile.assigned_by:
+        # Moderator can only see posts fetched by their assigned admin
+        posts = FacebookPost.objects.filter(fetched_by=user_profile.assigned_by).order_by('-created_at')
+
+    else:
+        # Default: No access
+        messages.error(request, "You are not authorized to view these posts.")
         return redirect('dashboard')
 
-    # Retrieve all Facebook posts from the database
-    posts = FacebookPost.objects.all().order_by('-created_at')  # Display newest posts first
-    # Slicing post_id to only show the second part
+    # Modify post_id display format
     for post in posts:
         post.post_id_display = post.post_id.split('_')[1]
+
     return render(request, 'facebook/posts.html', {'posts': posts})
 
 @login_required
