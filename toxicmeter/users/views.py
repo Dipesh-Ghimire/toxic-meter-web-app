@@ -4,6 +4,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
+from facebook.models import FacebookComment
+from ml_integration.services import store_single_prediction
+
 from .models import UserProfile
 from .forms import AssignTokenForm, UserRegisterForm, UserLoginForm, AdminTokenForm
 from django.contrib import messages
@@ -50,7 +53,29 @@ def user_logout(request):
 @login_required
 def dashboard(request):
     # Check if the logged-in user is an admin
+    def checkModelServing():
+        comment = FacebookComment.objects.first()
+        print(comment)
+        if comment:
+            success = store_single_prediction(comment.id)
+        # Update serving status based on model response
+            if success:
+                # Update moderator stats
+                stats, created = CommentStats.objects.get_or_create(moderator=request.user)
+                stats.is_model_serving = True
+                stats.save()
+
+            else:
+                # If the model fails, update the is_model_serving flag to False
+                stats, created = CommentStats.objects.get_or_create(moderator=request.user)
+                stats.is_model_serving = False
+                stats.save()
+                messages.error(request, "ML Model is not responding. Please check the server.")
+                return True
+        else:
+            return False
     if request.user.userprofile.role == 'admin':  # Admins can see stats for all moderators
+        checkModelServing()
         moderators = User.objects.filter(userprofile__role='moderator')  # Get all moderators
         stats_data = []
         for moderator in moderators:
@@ -67,8 +92,9 @@ def dashboard(request):
             'stats_data': stats_data,
             'user': request.user,
         }
-    else:  # If the user is a moderator, show only their own stats
+    elif request.user.userprofile.role == 'moderator':  # If the user is a moderator, show only their own stats
         try:
+            checkModelServing()
             stats = request.user.moderator_stats  # Fetch the current moderator's stats
             context = {
                 'is_admin': False,

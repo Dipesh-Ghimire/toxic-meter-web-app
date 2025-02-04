@@ -24,6 +24,7 @@
                     <th scope="col" class="px-6 py-3">Comments Manually Tagged</th>
                     <th scope="col" class="px-6 py-3">Posts Fetched</th>
                     <th scope="col" class="px-6 py-3">Last Updated</th>
+                    <th scope="col" class="px-6 py-3">Model Serving</th>
                 </tr>
             </thead>
             <tbody>
@@ -38,6 +39,7 @@
                     <td class="px-6 py-4">{{ data.stats.comments_manually_tagged }}</td>
                     <td class="px-6 py-4">{{ data.stats.posts_fetched }}</td>
                     <td class="px-6 py-4">{{ data.stats.last_updated }}</td>
+                    <td class="px-6 py-4">{{ data.stats.is_model_serving }}</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -93,6 +95,10 @@
                     <tr>
                         <td>Last Updated</td>
                         <td>{{ stats.last_updated }}</td>
+                    </tr>
+                    <tr>
+                        <td>Is Model Serving</td>
+                        <td>{{ stats.is_model_serving }}</td>
                     </tr>
                 </tbody>
             </table>

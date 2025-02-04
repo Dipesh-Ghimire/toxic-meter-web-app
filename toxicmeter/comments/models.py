@@ -27,7 +27,7 @@ class CommentStats(models.Model):
     comments_hidden = models.PositiveIntegerField(default=0)    # Total comments hidden
     comments_unhidden = models.PositiveIntegerField(default=0)  # Total comments unhidden
     comments_manually_tagged = models.PositiveIntegerField(default=0)  # Total comments manually tagged
-
+    is_model_serving = models.BooleanField(default=False)  # Is the model serving comments?
     # Posts-related counters
     posts_fetched = models.PositiveIntegerField(default=0)      # Total posts fetched from Facebook
 
