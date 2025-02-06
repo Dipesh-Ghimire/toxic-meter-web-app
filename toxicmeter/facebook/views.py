@@ -4,6 +4,7 @@ from django.contrib import messages
 from users.models import UserProfile
 from .models import FacebookPost
 from .facebook_api import fetch_facebook_posts,fetch_facebook_comments
+from django.db.models import Q
 
 @login_required
 def fetch_posts(request):
@@ -48,12 +49,15 @@ def view_posts(request):
         # Default: No access
         messages.error(request, "You are not authorized to view these posts.")
         return redirect('dashboard')
-
+    # Handle Search Query
+    search_query = request.GET.get('q')
+    if search_query:
+        posts = posts.filter(Q(post_id__icontains=search_query) | Q(message__icontains=search_query))
     # Modify post_id display format
     for post in posts:
         post.post_id_display = post.post_id.split('_')[1]
 
-    return render(request, 'facebook/posts.html', {'posts': posts})
+    return render(request, 'facebook/posts.html', {'posts': posts,'search_query': search_query})
 
 @login_required
 def fetch_comments(request, post_id):

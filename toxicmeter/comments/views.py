@@ -11,6 +11,7 @@ from ml_integration.services import store_bulk_predictions, store_single_predict
 from facebook.facebook_api import delete_facebook_comment, hide_facebook_comment , unhide_facebook_comment
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 # View for Analyzed Comments
@@ -25,6 +26,9 @@ def analyzed_comments(request):
         post__in=user_posts
     ).select_related('toxicity_parameters', 'post').order_by('-toxicity_parameters__predicted_at')
 
+    search_query = request.GET.get('q')
+    if search_query:
+        comments = comments.filter(Q(content__icontains=search_query) | Q(user_name__icontains=search_query))
     for c in comments:
         c.post_id_display = c.post.post_id.split('_')[1]
 
@@ -33,7 +37,7 @@ def analyzed_comments(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'comments/analyzed_comments.html', {'page_obj': page_obj, 'comments': page_obj.object_list})
+    return render(request, 'comments/analyzed_comments.html', {'page_obj': page_obj, 'comments': page_obj.object_list,'search_query': search_query})
 
 # View for Unanalyzed Comments
 @login_required
@@ -46,13 +50,15 @@ def unanalyzed_comments(request):
         toxicity_parameters__isnull=True,
         post__in=user_posts
     ).select_related('post')
-
+    search_query = request.GET.get('q')
+    if search_query:
+        comments = comments.filter(Q(content__icontains=search_query) | Q(user_name__icontains=search_query))
     # Pagination (10 comments per page)
     paginator = Paginator(comments, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'comments/unanalyzed_comments.html', {'comments': page_obj})
+    return render(request, 'comments/unanalyzed_comments.html', {'comments': page_obj,'search_query': search_query})
 
 # Analyze Comment
 @login_required
@@ -269,7 +275,9 @@ def deleted_comments(request):
         deleted_comments = DeletedComment.objects.filter(post__in=user_posts).order_by('-deleted_at')
     else:
         deleted_comments = DeletedComment.objects.none()  # No assigned admin, no deleted comments
-
+    search_query = request.GET.get('q')
+    if search_query:
+        deleted_comments = deleted_comments.filter(Q(content__icontains=search_query) | Q(user_name__icontains=search_query))
     for c in deleted_comments:
         c.comment_id_display = c.comment_id.split('_')[1] if '_' in c.comment_id else c.comment_id
 
@@ -301,6 +309,7 @@ def deleted_comments(request):
 
     return render(request, 'comments/deleted_comments.html', {
         'deleted_comments': deleted_comments,
+        'search_query': search_query
     })
 
 
