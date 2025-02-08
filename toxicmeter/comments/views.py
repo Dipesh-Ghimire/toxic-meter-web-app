@@ -312,6 +312,32 @@ def deleted_comments(request):
         'search_query': search_query
     })
 
+@login_required
+def edit_toxicity_labels(request, comment_id):
+    """
+    Allows moderators to manually edit toxicity labels of a comment via a modal form.
+    """
+    comment = get_object_or_404(FacebookComment, id=comment_id)
+
+    if request.method == "POST":
+        toxicity_params = comment.toxicity_parameters
+
+        # Update toxicity labels based on form submission
+        toxicity_params.toxic = 'toxic' in request.POST
+        toxicity_params.severe_toxic = 'severe_toxic' in request.POST
+        toxicity_params.obscene = 'obscene' in request.POST
+        toxicity_params.threat = 'threat' in request.POST
+        toxicity_params.insult = 'insult' in request.POST
+        toxicity_params.identity_hate = 'identity_hate' in request.POST
+
+        # Save updated parameters
+        toxicity_params.save()
+        stats = request.user.moderator_stats
+        stats.comments_manually_tagged += 1
+        stats.save()
+        messages.success(request, f"Manually Tagged Toxicity labels for comment {comment_id}")
+
+    return redirect('analyzed_comments')
 
 def paginate_comments(request, comments_list):
     """

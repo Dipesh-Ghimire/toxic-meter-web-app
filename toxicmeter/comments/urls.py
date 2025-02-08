@@ -11,6 +11,6 @@ urlpatterns = [
     path('hide/<int:comment_id>/', views.hide_comment, name='hide_comment'),
     path('unhide/<int:comment_id>/', views.unhide_comment, name='unhide_comment'),
     path('analyze/bulk/', views.analyze_bulk_comments, name='analyze_bulk_comments'),
-
+    path('edit_toxicity_labels/<int:comment_id>/', views.edit_toxicity_labels, name='edit_toxicity_labels'),
 
 ]

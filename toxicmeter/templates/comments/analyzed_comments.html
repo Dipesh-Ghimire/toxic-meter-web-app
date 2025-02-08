@@ -55,7 +55,16 @@
                         {% if comment.toxicity_parameters.insult %}<li class="text-purple-600">Insult</li>{% endif %}
                         {% if comment.toxicity_parameters.identity_hate %}<li class="text-indigo-600">Identity Hate</li>{% endif %}
                     </ul>
-                </td>
+                    <button type="button" 
+onclick="openEditModal('{{ comment.id }}', 
+        '{{ comment.toxicity_parameters.toxic }}', 
+        '{{ comment.toxicity_parameters.severe_toxic }}', 
+        '{{ comment.toxicity_parameters.obscene }}', 
+        '{{ comment.toxicity_parameters.threat }}', 
+        '{{ comment.toxicity_parameters.insult }}', 
+        '{{ comment.toxicity_parameters.identity_hate }}')"
+    class="mt-2 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-900">Edit</button>
+                </td>              
                 <td class="px-6 py-4">
                     <div class="flex gap-2">
                         <!-- Delete Button -->
@@ -121,5 +130,88 @@
             {% endif %}
         </ul>
     </nav>
+    <!-- Edit Toxicity Modal -->
+<div id="editToxicityModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-96">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Edit Toxicity Labels</h2>
+        
+        <form id="editToxicityForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" id="commentId" name="comment_id">
+            
+            <div class="mb-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="toxic" name="toxic" class="form-checkbox text-red-600">
+                    <span class="ml-2 text-red-600">Toxic</span>
+                </label>
+            </div>
+            <div class="mb-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="severe_toxic" name="severe_toxic" class="form-checkbox text-red-700">
+                    <span class="ml-2 text-red-700">Severe Toxic</span>
+                </label>
+            </div>
+            <div class="mb-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="obscene" name="obscene" class="form-checkbox text-orange-600">
+                    <span class="ml-2 text-orange-600">Obscene</span>
+                </label>
+            </div>
+            <div class="mb-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="threat" name="threat" class="form-checkbox text-yellow-600">
+                    <span class="ml-2 text-yellow-600">Threat</span>
+                </label>
+            </div>
+            <div class="mb-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="insult" name="insult" class="form-checkbox text-purple-600">
+                    <span class="ml-2 text-purple-600">Insult</span>
+                </label>
+            </div>
+            <div class="mb-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="identity_hate" name="identity_hate" class="form-checkbox text-indigo-600">
+                    <span class="ml-2 text-indigo-600">Identity Hate</span>
+                </label>
+            </div>
+
+            <div class="flex justify-end">
+                <button type="button" onclick="closeEditModal()" class="text-gray-700 bg-gray-300 px-4 py-2 rounded-lg mr-2">Cancel</button>
+                <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    function openEditModal(commentId, toxic, severe_toxic, obscene, threat, insult, identity_hate) {
+        const modal = document.getElementById("editToxicityModal");
+        const form = document.getElementById("editToxicityForm");
+        const commentIdInput = document.getElementById("commentId");
+
+        // Set the form action dynamically
+        form.action = `{% url 'edit_toxicity_labels' 0 %}`.replace("0", commentId);
+
+        // Set comment ID
+        commentIdInput.value = commentId;
+
+        // Set checkboxes based on toxicity labels
+        document.getElementById("toxic").checked = toxic === "True";
+        document.getElementById("severe_toxic").checked = severe_toxic === "True";
+        document.getElementById("obscene").checked = obscene === "True";
+        document.getElementById("threat").checked = threat === "True";
+        document.getElementById("insult").checked = insult === "True";
+        document.getElementById("identity_hate").checked = identity_hate === "True";
+
+        // Show modal
+        modal.classList.remove("hidden");
+    }
+
+    function closeEditModal() {
+        document.getElementById("editToxicityModal").classList.add("hidden");
+    }
+</script>
+
+
 </div>
 {% endblock %}
